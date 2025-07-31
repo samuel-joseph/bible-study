@@ -1,57 +1,28 @@
 package com.biblestudy.biblebackend.controller;
 
-import java.net.URI;
-import java.util.Date;
-
-import org.springframework.http.HttpStatus;
+import com.biblestudy.biblebackend.dto.BibleVerseDTO;
+import com.biblestudy.biblebackend.service.BibleService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
 @RequestMapping("/api/bible")
 @CrossOrigin(origins = "*")
 public class BibleController {
 
-	private final RestTemplate restTemplate = new RestTemplate();
+	private final BibleService bibleService;
+
+	public BibleController(BibleService bibleService) {
+		this.bibleService = bibleService;
+	}
 
 	@GetMapping("/verse")
-	public ResponseEntity<?> getVerse(@RequestParam String reference) {
-		try {
-			// 🔒 Safe URI building & encoding
-			URI uri = UriComponentsBuilder
-				.fromHttpUrl("https://bible-api.com/" + reference)
-				.build()
-				.encode()
-				.toUri();
-
-			String response = restTemplate.getForObject(uri, String.class);
-			return ResponseEntity.ok(response);
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-				.body("Error fetching verse: " + e.getMessage());
-		}
+	public ResponseEntity<BibleVerseDTO> getVerse(@RequestParam String reference) {
+		return ResponseEntity.ok(bibleService.getVerseByReference(reference));
 	}
-	
-	@GetMapping("/proverbs")
-	public ResponseEntity<?> getVerse() {
-		try {
-			// 🔒 Safe URI building & encoding
-			Date date = new Date();
-			String currentDay = Integer.toString(date.getDate());
-			String reference = "proverbs" + currentDay;
-			URI uri = UriComponentsBuilder
-				.fromHttpUrl("https://bible-api.com/" + reference)
-				.build()
-				.encode()
-				.toUri();
 
-			String response = restTemplate.getForObject(uri, String.class);
-			return ResponseEntity.ok(response);
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-				.body("Error fetching verse: " + e.getMessage());
-		}
+	@GetMapping("/proverbs")
+	public ResponseEntity<BibleVerseDTO> getProverbOfTheDay() {
+		return ResponseEntity.ok(bibleService.getDailyProverb());
 	}
 }
